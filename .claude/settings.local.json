@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer create-project:*)",
+      "Bash(composer require:*)",
+      "Bash(php artisan ui:*)",
+      "Bash(php artisan:*)",
+      "Bash(chmod:*)",
+      "Bash(composer dump-autoload:*)",
+      "Bash(composer show:*)",
+      "Bash(curl:*)",
+      "Bash(mysql:*)",
+      "Bash(brew services:*)",
+      "Bash(brew list:*)",
+      "Bash(brew install:*)",
+      "Bash(php:*)",
+      "Bash(lsof:*)",
+      "Bash(open:*)",
+      "Bash(mkdir:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
