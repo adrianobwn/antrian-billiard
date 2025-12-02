@@ -2,8 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\ReservationController;
-use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
+use App\Http\Controllers\Customer\ReservationController as CustomerReservationController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\TableTypeController;
 use App\Http\Controllers\Admin\PromoController;
@@ -28,23 +30,15 @@ Route::prefix('customer')->name('customer.')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::middleware('auth:web')->group(function () {
-        Route::get('/dashboard', function () {
-            $recentReservations = auth()->user()->reservations()
-                ->with(['table.tableType', 'payment', 'promo'])
-                ->orderBy('reservation_time', 'desc')
-                ->limit(5)
-                ->get();
-            
-            return view('customer.dashboard', compact('recentReservations'));
-        })->name('dashboard');
+        Route::get('/dashboard', [CustomerDashboardController::class, 'index'])->name('dashboard');
 
         // Reservation Routes
-        Route::get('/reservations/create', [ReservationController::class, 'create'])->name('reservations.create');
-        Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
-        Route::get('/reservations/my', [ReservationController::class, 'myReservations'])->name('reservations.my');
-        Route::get('/reservations/{id}', [ReservationController::class, 'show'])->name('reservations.show');
-        Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
-        Route::post('/reservations/{id}/pay', [ReservationController::class, 'processPayment'])->name('reservations.pay');
+        Route::get('/reservations/create', [CustomerReservationController::class, 'create'])->name('reservations.create');
+        Route::post('/reservations', [CustomerReservationController::class, 'store'])->name('reservations.store');
+        Route::get('/reservations/my', [CustomerReservationController::class, 'myReservations'])->name('reservations.my');
+        Route::get('/reservations/{id}', [CustomerReservationController::class, 'show'])->name('reservations.show');
+        Route::post('/reservations/{id}/cancel', [CustomerReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::post('/reservations/{id}/pay', [CustomerReservationController::class, 'processPayment'])->name('reservations.pay');
     });
 });
 
@@ -57,8 +51,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     })->name('logout');
 
     Route::middleware('auth:admin')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/reports', [DashboardController::class, 'reports'])->name('reports');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/reports', [AdminDashboardController::class, 'reports'])->name('reports');
 
         // Table Type Management
         Route::prefix('table-types')->name('table-types.')->group(function () {
@@ -92,9 +86,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Reservation Management
         Route::prefix('reservations')->name('reservations.')->group(function () {
-            Route::get('/', [ReservationController::class, 'adminIndex'])->name('index');
-            Route::get('/{id}', [ReservationController::class, 'adminShow'])->name('show');
-            Route::put('/{id}/status', [ReservationController::class, 'adminUpdateStatus'])->name('update-status');
+            Route::get('/', [AdminReservationController::class, 'index'])->name('index');
+            Route::get('/{id}', [AdminReservationController::class, 'show'])->name('show');
+            Route::put('/{id}/status', [AdminReservationController::class, 'updateStatus'])->name('update-status');
         });
     });
 });
