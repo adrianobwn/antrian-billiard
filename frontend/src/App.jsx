@@ -7,17 +7,25 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 
-// Customer pages (will be created)
-// import CustomerDashboard from './pages/customer/DashboardPage';
+// Layouts
+import CustomerLayout from './layouts/CustomerLayout';
+import AdminLayout from './layouts/AdminLayout';
 
-// Admin pages (will be created)
-// import AdminDashboard from './pages/admin/DashboardPage';
+// Customer Pages
+import CustomerDashboard from './pages/customer/DashboardPage';
+import ReservationPage from './pages/customer/ReservationPage';
+// import CustomerHistory from './pages/customer/HistoryPage'; // Coming next
+// import CustomerProfile from './pages/customer/ProfilePage'; // Coming next
+
+// Admin Pages
+import AdminDashboard from './pages/admin/DashboardPage';
+import TableManagement from './pages/admin/TableManagementPage';
 
 function App() {
     return (
         <Router>
             <AuthProvider>
-                <div className="min-h-screen bg-background">
+                <div className="min-h-screen bg-background text-text-primary font-sans">
                     <Routes>
                         {/* Public routes */}
                         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -26,37 +34,35 @@ function App() {
 
                         {/* Customer routes */}
                         <Route
-                            path="/customer/*"
+                            path="/customer"
                             element={
                                 <ProtectedRoute>
-                                    <div className="flex items-center justify-center min-h-screen">
-                                        <div className="card p-8 text-center">
-                                            <h2 className="text-2xl font-bold text-customer-primary mb-4">
-                                                Customer Dashboard
-                                            </h2>
-                                            <p className="text-text-secondary">Coming soon...</p>
-                                        </div>
-                                    </div>
+                                    <CustomerLayout />
                                 </ProtectedRoute>
                             }
-                        />
+                        >
+                            <Route index element={<Navigate to="dashboard" replace />} />
+                            <Route path="dashboard" element={<CustomerDashboard />} />
+                            <Route path="reservations/new" element={<ReservationPage />} />
+                            <Route path="history" element={<div className="p-8 text-center text-text-secondary">History Page (Coming Soon)</div>} />
+                            <Route path="profile" element={<div className="p-8 text-center text-text-secondary">Profile Page (Coming Soon)</div>} />
+                        </Route>
 
                         {/* Admin routes */}
                         <Route
-                            path="/admin/*"
+                            path="/admin"
                             element={
                                 <ProtectedRoute requireAdmin>
-                                    <div className="flex items-center justify-center min-h-screen">
-                                        <div className="card p-8 text-center">
-                                            <h2 className="text-2xl font-bold text-admin-accent mb-4">
-                                                Admin Dashboard
-                                            </h2>
-                                            <p className="text-text-secondary">Coming soon...</p>
-                                        </div>
-                                    </div>
+                                    <AdminLayout />
                                 </ProtectedRoute>
                             }
-                        />
+                        >
+                            <Route index element={<Navigate to="dashboard" replace />} />
+                            <Route path="dashboard" element={<AdminDashboard />} />
+                            <Route path="tables" element={<TableManagement />} />
+                            <Route path="promos" element={<div className="p-8 text-center text-text-secondary">Promo Management (Coming Soon)</div>} />
+                            <Route path="reports" element={<div className="p-8 text-center text-text-secondary">Reports (Coming Soon)</div>} />
+                        </Route>
 
                         {/* 404 */}
                         <Route path="*" element={<Navigate to="/" replace />} />
@@ -66,5 +72,7 @@ function App() {
         </Router>
     );
 }
+
+
 
 export default App;
