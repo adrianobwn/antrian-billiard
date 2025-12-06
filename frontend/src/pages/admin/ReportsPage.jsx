@@ -284,9 +284,8 @@ const ReportsPage = () => {
                                     </td>
                                     <td className="py-4 text-text-primary">{formatCurrency(promo.totalDiscount)}</td>
                                     <td className="py-4">
-                                        <span className={`font-semibold ${
-                                            parseFloat(promo.roi) > 0 ? 'text-status-success' : 'text-status-error'
-                                        }`}>
+                                        <span className={`font-semibold ${parseFloat(promo.roi) > 0 ? 'text-status-success' : 'text-status-error'
+                                            }`}>
                                             {promo.roi}%
                                         </span>
                                     </td>
@@ -346,8 +345,74 @@ const ReportsPage = () => {
     };
 
     const handleExport = () => {
-        // TODO: Implement export functionality
-        console.log('Exporting reports...');
+        try {
+            let csvContent = '';
+            let filename = '';
+
+            switch (activeTab) {
+                case 'revenue':
+                    filename = `revenue_report_${new Date().toISOString().split('T')[0]}.csv`;
+                    csvContent = 'Date,Revenue,Transactions\n';
+                    (data.dailyRevenue || []).forEach(row => {
+                        csvContent += `${row.date},${row.revenue},${row.transactions || 0}\n`;
+                    });
+                    break;
+
+                case 'tables':
+                    filename = `table_performance_${new Date().toISOString().split('T')[0]}.csv`;
+                    csvContent = 'Table,Type,Reservations,Total Hours,Avg Duration,Revenue,Utilization %\n';
+                    (data || []).forEach(table => {
+                        csvContent += `${table.tableNumber},${table.tableType},${table.reservations},${table.totalHours.toFixed(1)},${table.averageDuration.toFixed(1)},${table.estimatedRevenue},${table.utilizationRate.toFixed(1)}\n`;
+                    });
+                    break;
+
+                case 'customers':
+                    filename = `customer_analytics_${new Date().toISOString().split('T')[0]}.csv`;
+                    csvContent = 'Customer Name,Reservations,Total Spent,Average Spent\n';
+                    (data.topCustomers || []).forEach(customer => {
+                        csvContent += `${customer.customerName},${customer.reservations},${customer.totalSpent},${customer.averageSpent}\n`;
+                    });
+                    break;
+
+                case 'promos':
+                    filename = `promo_effectiveness_${new Date().toISOString().split('T')[0]}.csv`;
+                    csvContent = 'Promo Code,Type,Value,Usage Count,Total Discount,ROI %\n';
+                    (data || []).forEach(promo => {
+                        const value = promo.discountType === 'percentage' ? `${promo.discountValue}%` : promo.discountValue;
+                        csvContent += `${promo.code},${promo.discountType},${value},${promo.usageCount},${promo.totalDiscount},${promo.roi}\n`;
+                    });
+                    break;
+
+                case 'hourly':
+                    filename = `hourly_analytics_${new Date().toISOString().split('T')[0]}.csv`;
+                    csvContent = 'Hour,Reservations,Revenue\n';
+                    (data.hourlyStats || []).forEach(stat => {
+                        csvContent += `${stat.hour}:00,${stat.count},${stat.revenue || 0}\n`;
+                    });
+                    break;
+
+                default:
+                    console.warn('No export available for this tab');
+                    return;
+            }
+
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            console.log(`Exported ${filename} successfully`);
+        } catch (error) {
+            console.error('Error exporting report:', error);
+            alert('Failed to export report. Please try again.');
+        }
     };
 
     return (
@@ -385,11 +450,10 @@ const ReportsPage = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                                    activeTab === tab.id
+                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === tab.id
                                         ? 'bg-admin-primary text-white'
                                         : 'text-text-secondary hover:bg-surface-elevated'
-                                }`}
+                                    }`}
                             >
                                 <tab.icon size={18} className="inline mr-2" />
                                 {tab.label}
