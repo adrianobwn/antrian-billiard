@@ -31,8 +31,17 @@ const reservationService = {
         return response.data;
     },
 
-    // Get available tables for a specific time slot (helper if backend has this specific endpoint, otherwise logic might be mixed)
-    // Assuming backend might implement a check availability, but for now standard CRUD.
+    // Check table availability
+    checkAvailability: async (data) => {
+        const response = await api.post('/reservations/check-availability', data);
+        return response.data;
+    },
+
+    // Process payment
+    processPayment: async (id, data) => {
+        const response = await api.post(`/reservations/${id}/payment`, data);
+        return response.data;
+    },
 };
 
 export default reservationService;

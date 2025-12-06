@@ -63,7 +63,10 @@ export const registerCustomer = async (req, res, next) => {
             message: 'Registration successful',
             data: {
                 token,
-                user: customer.toSafeObject(),
+                user: {
+                    ...customer.toSafeObject(),
+                    type: 'customer',
+                },
             },
         });
     } catch (error) {
@@ -115,7 +118,10 @@ export const loginCustomer = async (req, res, next) => {
             message: 'Login successful',
             data: {
                 token,
-                user: customer.toSafeObject(),
+                user: {
+                    ...customer.toSafeObject(),
+                    type: 'customer',
+                },
             },
         });
     } catch (error) {
@@ -159,7 +165,10 @@ export const loginAdmin = async (req, res, next) => {
             message: 'Login successful',
             data: {
                 token,
-                user: admin.toSafeObject(),
+                user: {
+                    ...admin.toSafeObject(),
+                    type: 'admin',
+                },
             },
         });
     } catch (error) {

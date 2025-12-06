@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Home, CalendarPlus, History, User } from 'lucide-react';
+import { LogOut, Home, CalendarPlus, History, User, Activity } from 'lucide-react';
 
 const CustomerLayout = () => {
     const { logout, user } = useAuth();
@@ -38,6 +38,9 @@ const CustomerLayout = () => {
                             <Link to="/customer/history" className={`flex items-center gap-2 font-medium transition-colors ${isActive('/customer/history')}`}>
                                 <History size={18} /> History
                             </Link>
+                            <Link to="/customer/activity" className={`flex items-center gap-2 font-medium transition-colors ${isActive('/customer/activity')}`}>
+                                <Activity size={18} /> Activity
+                            </Link>
                             <Link to="/customer/profile" className={`flex items-center gap-2 font-medium transition-colors ${isActive('/customer/profile')}`}>
                                 <User size={18} /> Profile
                             </Link>
@@ -72,6 +75,9 @@ const CustomerLayout = () => {
                     </Link>
                     <Link to="/customer/reservations/new" className={`flex flex-col items-center gap-1 ${isActive('/customer/reservations/new')}`}>
                         <CalendarPlus size={20} /> <span className="text-xs">Book</span>
+                    </Link>
+                    <Link to="/customer/history" className={`flex flex-col items-center gap-1 ${isActive('/customer/history')}`}>
+                        <History size={20} /> <span className="text-xs">History</span>
                     </Link>
                     <Link to="/customer/profile" className={`flex flex-col items-center gap-1 ${isActive('/customer/profile')}`}>
                         <User size={20} /> <span className="text-xs">Profile</span>

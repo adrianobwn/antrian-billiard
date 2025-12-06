@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, LayoutDashboard, Grid, Ticket, BarChart3, Settings } from 'lucide-react';
+import { LogOut, LayoutDashboard, Grid, Tag, Ticket, BarChart3, Settings } from 'lucide-react';
 
 const AdminLayout = () => {
     const { logout, user } = useAuth();
@@ -16,6 +16,7 @@ const AdminLayout = () => {
     const navItems = [
         { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/admin/tables', icon: Grid, label: 'Tables' },
+        { path: '/admin/table-types', icon: Tag, label: 'Table Types' },
         { path: '/admin/promos', icon: Ticket, label: 'Promotions' },
         { path: '/admin/reports', icon: BarChart3, label: 'Reports' },
         // { path: '/admin/settings', icon: Settings, label: 'Settings' },

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(lsof:*)",
+      "Bash(curl:*)",
+      "Bash(npm run migrate:*)",
+      "Bash(xargs kill:*)",
+      "Bash(npm run seed:*)",
+      "Bash(npm run seed:fresh:*)",
+      "Bash(node:*)",
+      "Bash(kill:*)",
+      "Bash(timeout:*)",
+      "Bash(pkill:*)",
+      "Bash(npm install:*)",
+      "Bash(jq:*)",
+      "WebSearch"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
