@@ -67,8 +67,8 @@ const startServer = async () => {
 
         // Sync database (in development)
         if (config.env === 'development') {
-            // await sequelize.sync({ alter: true });
-            logger.info('Database sync would run here (currently commented out)');
+            await sequelize.sync({ alter: true });
+            logger.info('Database synced successfully');
         }
 
         // Start listening
