@@ -29,6 +29,12 @@ const tableTypeService = {
     delete: async (id) => {
         const response = await api.delete(`/table-types/${id}`);
         return response.data;
+    },
+
+    // Toggle table type status (activate/deactivate)
+    toggleStatus: async (id) => {
+        const response = await api.patch(`/table-types/${id}/toggle-status`);
+        return response.data;
     }
 };
 

@@ -10,7 +10,11 @@ const reportsService = {
     // Get table performance reports
     getTablePerformance: async (params = {}) => {
         const response = await api.get('/reports/table-performance', { params });
-        return response.data.data;
+        // Handle wrapped response
+        if (response.data.success) {
+            return response.data.data;
+        }
+        return response.data;
     },
 
     // Get customer analytics
@@ -22,7 +26,11 @@ const reportsService = {
     // Get promo effectiveness reports
     getPromoEffectiveness: async () => {
         const response = await api.get('/reports/promo-effectiveness');
-        return response.data.data;
+        // Handle wrapped response
+        if (response.data.success) {
+            return response.data.data;
+        }
+        return response.data;
     },
 
     // Get hourly analytics

@@ -152,12 +152,14 @@ const ReservationPage = () => {
     const onSubmit = async (data) => {
         setError('');
         try {
-            const reservationDate = new Date(`${data.date}T${data.time}`);
+            const startTime = new Date(`${data.date}T${data.time}`);
+            const endTime = new Date(startTime.getTime() + data.duration * 60000);
 
             const payload = {
                 table_id: data.tableId,
-                reservation_time: reservationDate.toISOString(),
-                duration_minutes: data.duration
+                start_time: startTime.toISOString(),
+                end_time: endTime.toISOString(),
+                notes: `Booked via Customer Portal`
             };
 
             // Add promo code if provided
@@ -169,7 +171,7 @@ const ReservationPage = () => {
 
             if (response.success) {
                 // Redirect to payment page with the reservation ID
-                navigate(`/customer/payment?reservationId=${response.data.id}`);
+                navigate(`/customer/payment?reservationId=${response.data.reservation.id}`);
             } else {
                 setError('Failed to create reservation');
             }
@@ -287,11 +289,10 @@ const ReservationPage = () => {
                                                     <div className="text-sm text-text-primary font-semibold mb-2">
                                                         {formatCurrency(table.tableType?.hourly_rate || 0)}/hour
                                                     </div>
-                                                    <div className={`text-sm capitalize px-3 py-1 rounded-full inline-block ${
-                                                        isAvailable
-                                                            ? 'bg-status-success/20 text-status-success'
-                                                            : 'bg-status-error/20 text-status-error'
-                                                    }`}>
+                                                    <div className={`text-sm capitalize px-3 py-1 rounded-full inline-block ${isAvailable
+                                                        ? 'bg-status-success/20 text-status-success'
+                                                        : 'bg-status-error/20 text-status-error'
+                                                        }`}>
                                                         {watchedDate && watchedTime
                                                             ? (isAvailable ? 'Available' : 'Unavailable')
                                                             : table.status

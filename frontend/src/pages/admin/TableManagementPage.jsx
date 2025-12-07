@@ -3,16 +3,19 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import tableService from '../../services/tableService';
-import { Plus, Edit2, Trash2, X, Save } from 'lucide-react';
+import tableTypeService from '../../services/tableTypeService';
+import { formatCurrency } from '../../utils/helpers';
+import { Plus, Edit2, Trash2, X, Save, RefreshCw } from 'lucide-react';
 
 const tableSchema = z.object({
-    number: z.string().min(1, 'Table number is required'),
-    capacity: z.coerce.number().min(1, 'Must have at least 1 capacity'),
+    table_number: z.string().min(1, 'Table number is required'),
+    table_type_id: z.string().min(1, 'Please select a table type'),
     status: z.enum(['available', 'occupied', 'maintenance']),
 });
 
 const TableManagementPage = () => {
     const [tables, setTables] = useState([]);
+    const [tableTypes, setTableTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [currentTable, setCurrentTable] = useState(null);
@@ -21,8 +24,11 @@ const TableManagementPage = () => {
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
         resolver: zodResolver(tableSchema),
         defaultValues: {
+            table_number: '',
+            table_type_id: '',
             status: 'available'
-        }
+        },
+        mode: 'onSubmit'
     });
 
     const fetchTables = async () => {
@@ -36,21 +42,37 @@ const TableManagementPage = () => {
         }
     };
 
+    const fetchTableTypes = async () => {
+        try {
+            const data = await tableTypeService.getAll();
+            setTableTypes(data);
+        } catch (error) {
+            console.error("Failed to load table types", error);
+        }
+    };
+
     useEffect(() => {
         fetchTables();
+        fetchTableTypes();
     }, []);
 
     const openModal = (table = null) => {
         if (table) {
             setIsEditing(true);
             setCurrentTable(table);
-            setValue('number', table.number);
-            setValue('capacity', table.capacity);
+            setValue('table_number', table.table_number);
+            setValue('table_type_id', table.table_type_id.toString());
             setValue('status', table.status);
         } else {
             setIsEditing(false);
             setCurrentTable(null);
-            reset({ status: 'available' });
+            // Set default values for new table
+            const defaultTypeId = tableTypes.length > 0 ? tableTypes[0].id : '';
+            reset({
+                status: 'available',
+                table_type_id: defaultTypeId.toString(),
+                table_number: ''
+            });
         }
         setIsModalOpen(true);
     };
@@ -62,16 +84,22 @@ const TableManagementPage = () => {
 
     const onSubmit = async (data) => {
         try {
+            // Submit data with table_type_id as UUID string
+            const submitData = {
+                ...data,
+                table_type_id: data.table_type_id
+            };
+
             if (isEditing && currentTable) {
-                await tableService.update(currentTable.id, data);
+                await tableService.update(currentTable.id, submitData);
             } else {
-                await tableService.create(data);
+                await tableService.create(submitData);
             }
             fetchTables();
             closeModal();
         } catch (error) {
             console.error("Failed to save table", error);
-            alert("Failed to save table");
+            alert(error.response?.data?.error?.message || error.response?.data?.message || "Failed to save table");
         }
     };
 
@@ -82,6 +110,7 @@ const TableManagementPage = () => {
                 fetchTables();
             } catch (error) {
                 console.error("Failed to delete table", error);
+                alert(error.response?.data?.message || "Failed to delete table");
             }
         }
     };
@@ -90,12 +119,22 @@ const TableManagementPage = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-white">Table Management</h1>
-                <button
-                    onClick={() => openModal()}
-                    className="btn btn-primary-admin flex items-center gap-2"
-                >
-                    <Plus size={20} /> Add Table
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={fetchTables}
+                        disabled={loading}
+                        className="btn btn-outline-admin inline-flex items-center gap-2"
+                    >
+                        <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+                        Refresh
+                    </button>
+                    <button
+                        onClick={() => openModal()}
+                        className="btn btn-primary-admin flex items-center gap-2"
+                    >
+                        <Plus size={20} /> Add Table
+                    </button>
+                </div>
             </div>
 
             {loading ? (
@@ -106,15 +145,16 @@ const TableManagementPage = () => {
                         <div key={table.id} className="card p-6 flex flex-col justify-between">
                             <div>
                                 <div className="flex justify-between items-start mb-4">
-                                    <h3 className="text-xl font-bold text-white">Table {table.number}</h3>
+                                    <h3 className="text-xl font-bold text-white">Table {table.table_number}</h3>
                                     <span className={`badge ${table.status === 'available' ? 'badge-success' :
-                                            table.status === 'occupied' ? 'badge-warning' :
-                                                'badge-error'
+                                        table.status === 'occupied' ? 'badge-warning' :
+                                            'badge-error'
                                         }`}>
                                         {table.status}
                                     </span>
                                 </div>
-                                <p className="text-text-secondary mb-2">Capacity: {table.capacity} players</p>
+                                <p className="text-text-secondary mb-2">Type: {table.tableType?.name || 'Standard'}</p>
+                                <p className="text-text-secondary text-sm">Rate: Rp {table.tableType?.hourly_rate?.toLocaleString('id-ID') || '0'}/jam</p>
                             </div>
 
                             <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-text-muted/10">
@@ -155,21 +195,27 @@ const TableManagementPage = () => {
                             <div>
                                 <label className="block text-sm font-medium text-text-secondary mb-1">Table Number</label>
                                 <input
-                                    {...register('number')}
+                                    {...register('table_number')}
                                     className="input text-white"
                                     placeholder="e.g. 05"
                                 />
-                                {errors.number && <p className="text-status-error text-sm mt-1">{errors.number.message}</p>}
+                                {errors.table_number && <p className="text-status-error text-sm mt-1">{errors.table_number.message}</p>}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-text-secondary mb-1">Capacity</label>
-                                <input
-                                    type="number"
-                                    {...register('capacity')}
-                                    className="input text-white"
-                                />
-                                {errors.capacity && <p className="text-status-error text-sm mt-1">{errors.capacity.message}</p>}
+                                <label className="block text-sm font-medium text-text-secondary mb-1">Table Type</label>
+                                <select {...register('table_type_id')} className="input text-white">
+                                    <option value="">Select a table type...</option>
+                                    {tableTypes.map(type => (
+                                        <option key={type.id} value={type.id.toString()}>
+                                            {type.name} - Rp {formatCurrency(type.hourly_rate)}/jam
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.table_type_id && <p className="text-status-error text-sm mt-1">{errors.table_type_id.message}</p>}
+                                {tableTypes.length === 0 && (
+                                    <p className="text-status-warning text-sm mt-1">No table types available. Please create a table type first.</p>
+                                )}
                             </div>
 
                             <div>

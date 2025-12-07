@@ -45,11 +45,12 @@ const ActivityPage = () => {
             const response = await customerService.getActivityLogs(params);
             if (response.success) {
                 setActivities(response.data.activities);
-                setPagination(prev => ({
-                    ...prev,
-                    total: response.data.total,
-                    totalPages: Math.ceil(response.data.total / response.data.limit)
-                }));
+                if (response.data.pagination) {
+                    setPagination(prev => ({
+                        ...prev,
+                        ...response.data.pagination
+                    }));
+                }
             }
         } catch (error) {
             console.error('Failed to fetch activities:', error);
@@ -91,6 +92,8 @@ const ActivityPage = () => {
     };
 
     const getActivityTitle = (activity) => {
+        if (!activity || !activity.type) return 'Unknown Activity';
+
         switch (activity.type) {
             case 'reservation_created':
                 return 'Reservation Created';
@@ -106,12 +109,18 @@ const ActivityPage = () => {
                 return 'Profile Updated';
             case 'login':
                 return 'Login';
+            case 'logout':
+            case 'customer_logout':
+                return 'Logout';
             default:
-                return activity.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                // Safe string manipulation
+                return String(activity.type).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         }
     };
 
     const getActivityColor = (type) => {
+        if (!type) return 'text-text-secondary';
+
         switch (type) {
             case 'reservation_created':
                 return 'text-status-success';
@@ -127,6 +136,9 @@ const ActivityPage = () => {
                 return 'text-admin-accent';
             case 'login':
                 return 'text-status-info';
+            case 'logout':
+            case 'customer_logout':
+                return 'text-text-muted';
             default:
                 return 'text-text-secondary';
         }
@@ -151,7 +163,7 @@ const ActivityPage = () => {
                                 placeholder="Search activities..."
                                 value={filters.search}
                                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                                className="input pl-10"
+                                className="input !pl-14"
                             />
                         </div>
                     </div>
@@ -308,7 +320,7 @@ const ActivityPage = () => {
                                 <div>
                                     <h2 className="text-2xl font-bold text-white">{getActivityTitle(selectedActivity)}</h2>
                                     <p className={`text-sm ${getActivityColor(selectedActivity.type)}`}>
-                                        {selectedActivity.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                        {selectedActivity.type ? selectedActivity.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown'}
                                     </p>
                                 </div>
                             </div>
@@ -355,16 +367,12 @@ const ActivityPage = () => {
                                 </div>
                             )}
 
-                            {selectedActivity.details && (
-                                <div>
-                                    <h3 className="text-sm font-medium text-text-secondary mb-2">Details</h3>
-                                    <div className="bg-surface-elevated rounded-lg p-4">
-                                        <pre className="text-sm text-text-primary whitespace-pre-wrap">
-                                            {JSON.stringify(selectedActivity.details, null, 2)}
-                                        </pre>
-                                    </div>
+                            <div>
+                                <h3 className="text-sm font-medium text-text-secondary mb-2">Details</h3>
+                                <div className="bg-background/30 rounded-lg p-4 font-mono text-sm text-text-primary overflow-x-auto max-h-60">
+                                    {typeof selectedActivity.details === 'string' ? selectedActivity.details : JSON.stringify(selectedActivity.details, null, 2)}
                                 </div>
-                            )}
+                            </div>
                         </div>
 
                         <div className="mt-6 flex justify-end">

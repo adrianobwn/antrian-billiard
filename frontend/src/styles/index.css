@@ -38,6 +38,7 @@ body {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -83,7 +84,7 @@ body {
 
 /* Input styles */
 .input {
-  @apply w-full px-4 py-2 rounded-lg bg-surface-elevated border border-text-muted/30;
+  @apply w-full py-2 pl-4 pr-4 rounded-lg bg-surface-elevated border border-text-muted/30;
   @apply text-text-primary placeholder-text-muted;
   @apply focus:outline-none focus:border-customer-primary focus:ring-1 focus:ring-customer-primary;
   @apply transition-colors duration-200;
@@ -133,4 +134,25 @@ body {
 
 .table tbody tr {
   @apply hover:bg-surface-elevated transition-colors duration-150;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  @apply fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn;
+}
+
+.modal-content {
+  @apply bg-surface border border-text-muted/20 rounded-xl shadow-2xl w-full flex flex-col max-h-[90vh];
+}
+
+.modal-header {
+  @apply flex justify-between items-center p-6 border-b border-text-muted/10;
+}
+
+.modal-body {
+  @apply p-6 overflow-y-auto;
+}
+
+.modal-footer {
+  @apply p-6 border-t border-text-muted/10 flex justify-end gap-3 bg-surface-elevated/30 rounded-b-xl;
 }

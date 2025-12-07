@@ -31,15 +31,15 @@ const LandingPage = () => {
             <div className="flex items-center space-x-4">
               <Link
                 to="/login"
-                className="text-text-secondary hover:text-text-primary transition-colors"
+                className="px-4 py-2 bg-customer-primary text-white rounded-lg hover:bg-customer-primary-hover transition-colors"
               >
                 Masuk
               </Link>
               <Link
-                to="/login?type=admin"
-                className="px-4 py-2 bg-admin-accent text-white rounded-lg hover:bg-orange-600 transition-colors"
+                to="/register"
+                className="px-4 py-2 bg-surface text-text-primary rounded-lg hover:bg-surface-elevated transition-colors"
               >
-                Admin
+                Daftar
               </Link>
             </div>
           </div>
@@ -50,12 +50,12 @@ const LandingPage = () => {
       <section className="pt-32 pb-20 px-4">
         <div className="container mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-text-primary mb-6">
-            Selamat Datang di
-            <span className="text-customer-primary"> Antrian Billiard</span>
+            Billiard Premium
+            <span className="text-customer-primary"> di Semarang</span>
           </h1>
           <p className="text-xl text-text-secondary mb-8 max-w-2xl mx-auto">
-            Sistem reservasi meja billiard modern. Pesan meja favorit Anda secara online dan
-            nikmati permainan tanpa perlu menunggu.
+            Tempat billiard terbaik dengan 10 meja berkualitas internasional, suasana nyaman,
+            dan fasilitas lengkap. Nikmati pengalaman bermain billiard yang tak terlupakan.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -78,18 +78,18 @@ const LandingPage = () => {
       <section className="py-20 px-4 bg-surface/30">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center text-text-primary mb-12">
-            Mengapa Memilih Kami?
+            Fasilitas Kami
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center p-6 bg-background rounded-xl">
               <div className="w-16 h-16 bg-customer-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-8 h-8 text-customer-primary" />
+                <Trophy className="w-8 h-8 text-customer-primary" />
               </div>
               <h3 className="text-xl font-semibold text-text-primary mb-2">
-                Reservasi Mudah
+                Meja Profesional
               </h3>
               <p className="text-text-secondary">
-                Pesan meja billiard kapan saja, di mana saja melalui aplikasi web kami.
+                10 meja billiard berkualitas internasional dengan kain premium dan perawatan rutin.
               </p>
             </div>
             <div className="text-center p-6 bg-background rounded-xl">
@@ -97,10 +97,10 @@ const LandingPage = () => {
                 <Users className="w-8 h-8 text-admin-accent" />
               </div>
               <h3 className="text-xl font-semibold text-text-primary mb-2">
-                Kelola Efisien
+                Lounge Nyaman
               </h3>
               <p className="text-text-secondary">
-                Dashboard admin untuk mengelola meja, reservasi, dan laporan.
+                Area lounge ber-AC dengan sofa empuk, WiFi gratis, dan TV layar lebar.
               </p>
             </div>
             <div className="text-center p-6 bg-background rounded-xl">
@@ -108,10 +108,10 @@ const LandingPage = () => {
                 <Zap className="w-8 h-8 text-purple-500" />
               </div>
               <h3 className="text-xl font-semibold text-text-primary mb-2">
-                Real-time Update
+                Food & Beverage
               </h3>
               <p className="text-text-secondary">
-                Status meja update secara real-time, tidak ada double booking.
+                Cafe dengan menu lengkap, minuman segar, dan snack untuk menemani permainan Anda.
               </p>
             </div>
           </div>
@@ -150,7 +150,7 @@ const LandingPage = () => {
                 </ul>
                 <div className="text-center">
                   <span className="text-3xl font-bold text-customer-primary">
-                    Rp 50K
+                    Rp 20K
                   </span>
                   <span className="text-text-secondary">/jam</span>
                 </div>
@@ -182,7 +182,7 @@ const LandingPage = () => {
                 </ul>
                 <div className="text-center">
                   <span className="text-3xl font-bold text-admin-accent">
-                    Rp 100K
+                    Rp 35K
                   </span>
                   <span className="text-text-secondary">/jam</span>
                 </div>
@@ -214,7 +214,7 @@ const LandingPage = () => {
                 </ul>
                 <div className="text-center">
                   <span className="text-3xl font-bold text-yellow-600">
-                    Rp 200K
+                    Rp 75K
                   </span>
                   <span className="text-text-secondary">/jam</span>
                 </div>
@@ -474,7 +474,7 @@ const LandingPage = () => {
       <footer className="py-8 px-4 bg-background border-t border-surface-elevated">
         <div className="container mx-auto text-center">
           <p className="text-text-secondary">
-            © 2024 Antrian Billiard. All rights reserved.
+            © 2025 Antrian Billiard. All rights reserved.
           </p>
         </div>
       </footer>

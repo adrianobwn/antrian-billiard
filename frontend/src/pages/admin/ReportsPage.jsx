@@ -17,7 +17,7 @@ import {
 } from 'recharts';
 import {
     TrendingUp,
-    DollarSign,
+    Banknote,
     Users,
     Table,
     Tag,
@@ -85,7 +85,7 @@ const ReportsPage = () => {
     const COLORS = ['#00a859', '#f97316', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b'];
 
     const tabs = [
-        { id: 'revenue', label: 'Revenue', icon: DollarSign },
+        { id: 'revenue', label: 'Revenue', icon: Banknote },
         { id: 'tables', label: 'Tables', icon: Table },
         { id: 'customers', label: 'Customers', icon: Users },
         { id: 'promos', label: 'Promos', icon: Tag },
@@ -137,67 +137,83 @@ const ReportsPage = () => {
         </div>
     );
 
-    const renderTablePerformance = () => (
-        <div className="space-y-6">
-            <div className="card">
-                <div className="p-6 overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="text-left text-text-secondary text-sm">
-                                <th className="pb-4">Table</th>
-                                <th className="pb-4">Type</th>
-                                <th className="pb-4">Reservations</th>
-                                <th className="pb-4">Total Hours</th>
-                                <th className="pb-4">Avg Duration</th>
-                                <th className="pb-4">Revenue</th>
-                                <th className="pb-4">Utilization</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {(data || []).map((table) => (
-                                <tr key={table.tableId} className="border-t border-text-muted/10">
-                                    <td className="py-4 text-white">🎱 {table.tableNumber}</td>
-                                    <td className="py-4 text-text-secondary">{table.tableType}</td>
-                                    <td className="py-4 text-white">{table.reservations}</td>
-                                    <td className="py-4 text-white">{table.totalHours.toFixed(1)}h</td>
-                                    <td className="py-4 text-white">{table.averageDuration.toFixed(1)}h</td>
-                                    <td className="py-4 text-white">{formatCurrency(table.estimatedRevenue)}</td>
-                                    <td className="py-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-16 bg-surface-elevated rounded-full h-2">
-                                                <div
-                                                    className="bg-admin-primary h-2 rounded-full"
-                                                    style={{ width: `${Math.min(table.utilizationRate, 100)}%` }}
-                                                ></div>
-                                            </div>
-                                            <span className="text-text-secondary text-sm">{table.utilizationRate.toFixed(1)}%</span>
-                                        </div>
-                                    </td>
+    const renderTablePerformance = () => {
+        const tableData = Array.isArray(data) ? data : [];
+
+        if (tableData.length === 0) {
+            return (
+                <div className="card p-6">
+                    <div className="text-center py-12">
+                        <Table size={48} className="mx-auto text-text-muted mb-4 opacity-50" />
+                        <p className="text-text-secondary">No table performance data available</p>
+                        <p className="text-text-muted text-sm">Data will appear once there are reservations</p>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-6">
+                <div className="card">
+                    <div className="p-6 overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="text-left text-text-secondary text-sm">
+                                    <th className="pb-4">Table</th>
+                                    <th className="pb-4">Type</th>
+                                    <th className="pb-4">Reservations</th>
+                                    <th className="pb-4">Total Hours</th>
+                                    <th className="pb-4">Avg Duration</th>
+                                    <th className="pb-4">Revenue</th>
+                                    <th className="pb-4">Utilization</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {tableData.map((table) => (
+                                    <tr key={table.tableId} className="border-t border-text-muted/10">
+                                        <td className="py-4 text-white font-medium">Table {table.tableNumber}</td>
+                                        <td className="py-4 text-text-secondary">{table.tableType || '-'}</td>
+                                        <td className="py-4 text-white">{table.reservations || 0}</td>
+                                        <td className="py-4 text-white">{(table.totalHours || 0).toFixed(1)}h</td>
+                                        <td className="py-4 text-white">{(table.averageDuration || 0).toFixed(1)}h</td>
+                                        <td className="py-4 text-white">{formatCurrency(table.estimatedRevenue || 0)}</td>
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-16 bg-surface-elevated rounded-full h-2">
+                                                    <div
+                                                        className="bg-admin-primary h-2 rounded-full"
+                                                        style={{ width: `${Math.min(table.utilizationRate || 0, 100)}%` }}
+                                                    ></div>
+                                                </div>
+                                                <span className="text-text-secondary text-sm">{(table.utilizationRate || 0).toFixed(1)}%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Top Tables Chart */}
+                <div className="card p-6">
+                    <h2 className="text-xl font-bold text-white mb-4">Top Performing Tables</h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={tableData.slice(0, 5)}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                            <XAxis dataKey="tableNumber" stroke="#9ca3af" />
+                            <YAxis stroke="#9ca3af" />
+                            <Tooltip
+                                contentStyle={{ backgroundColor: '#1f2937', border: 'none' }}
+                                labelStyle={{ color: '#f3f4f6' }}
+                            />
+                            <Bar dataKey="estimatedRevenue" fill="#00a859" name="Revenue" />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
-
-            {/* Top Tables Chart */}
-            <div className="card p-6">
-                <h2 className="text-xl font-bold text-white mb-4">Top Performing Tables</h2>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={(data || []).slice(0, 5)}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                        <XAxis dataKey="tableNumber" stroke="#9ca3af" />
-                        <YAxis stroke="#9ca3af" />
-                        <Tooltip
-                            contentStyle={{ backgroundColor: '#1f2937', border: 'none' }}
-                            labelStyle={{ color: '#f3f4f6' }}
-                        />
-                        <Bar dataKey="estimatedRevenue" fill="#00a859" name="Revenue" />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-    );
+        );
+    };
 
     const renderCustomerAnalytics = () => (
         <div className="space-y-6">
@@ -245,58 +261,74 @@ const ReportsPage = () => {
         </div>
     );
 
-    const renderPromoEffectiveness = () => (
-        <div className="space-y-6">
-            <div className="card">
-                <div className="p-6 overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="text-left text-text-secondary text-sm">
-                                <th className="pb-4">Promo Code</th>
-                                <th className="pb-4">Type</th>
-                                <th className="pb-4">Value</th>
-                                <th className="pb-4">Usage</th>
-                                <th className="pb-4">Usage %</th>
-                                <th className="pb-4">Total Discount</th>
-                                <th className="pb-4">ROI %</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {(data || []).map((promo) => (
-                                <tr key={promo.promoId} className="border-t border-text-muted/10">
-                                    <td className="py-4">
-                                        <div className="flex items-center gap-2">
-                                            <Tag size={16} className="text-admin-accent" />
-                                            <span className="text-white font-mono font-bold">{promo.code}</span>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 text-text-secondary">
-                                        {promo.discountType === 'percentage' ? `${promo.discountValue}%` : formatCurrency(promo.discountValue)}
-                                    </td>
-                                    <td className="py-4 text-white">{promo.description || '-'}</td>
-                                    <td className="py-4 text-white">{promo.usageCount}</td>
-                                    <td className="py-4">
-                                        {promo.usagePercentage ? (
-                                            <span className="text-text-primary">{promo.usagePercentage}%</span>
-                                        ) : (
-                                            <span className="text-text-muted">Unlimited</span>
-                                        )}
-                                    </td>
-                                    <td className="py-4 text-text-primary">{formatCurrency(promo.totalDiscount)}</td>
-                                    <td className="py-4">
-                                        <span className={`font-semibold ${parseFloat(promo.roi) > 0 ? 'text-status-success' : 'text-status-error'
-                                            }`}>
-                                            {promo.roi}%
-                                        </span>
-                                    </td>
+    const renderPromoEffectiveness = () => {
+        const promoData = Array.isArray(data) ? data : [];
+
+        if (promoData.length === 0) {
+            return (
+                <div className="card p-6">
+                    <div className="text-center py-12">
+                        <Tag size={48} className="mx-auto text-text-muted mb-4 opacity-50" />
+                        <p className="text-text-secondary">No promo effectiveness data available</p>
+                        <p className="text-text-muted text-sm">Data will appear once promos are used</p>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-6">
+                <div className="card">
+                    <div className="p-6 overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="text-left text-text-secondary text-sm">
+                                    <th className="pb-4">Promo Code</th>
+                                    <th className="pb-4">Type</th>
+                                    <th className="pb-4">Value</th>
+                                    <th className="pb-4">Usage</th>
+                                    <th className="pb-4">Usage %</th>
+                                    <th className="pb-4">Total Discount</th>
+                                    <th className="pb-4">ROI %</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {promoData.map((promo) => (
+                                    <tr key={promo.promoId} className="border-t border-text-muted/10">
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-2">
+                                                <Tag size={16} className="text-admin-accent" />
+                                                <span className="text-white font-mono font-bold">{promo.code}</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 text-text-secondary">
+                                            {promo.discountType === 'percentage' ? `${promo.discountValue || 0}%` : formatCurrency(promo.discountValue || 0)}
+                                        </td>
+                                        <td className="py-4 text-white">{promo.description || '-'}</td>
+                                        <td className="py-4 text-white">{promo.usageCount || 0}</td>
+                                        <td className="py-4">
+                                            {promo.usagePercentage ? (
+                                                <span className="text-text-primary">{promo.usagePercentage}%</span>
+                                            ) : (
+                                                <span className="text-text-muted">Unlimited</span>
+                                            )}
+                                        </td>
+                                        <td className="py-4 text-text-primary">{formatCurrency(promo.totalDiscount || 0)}</td>
+                                        <td className="py-4">
+                                            <span className={`font-semibold ${parseFloat(promo.roi || 0) > 0 ? 'text-status-success' : 'text-status-error'
+                                                }`}>
+                                                {promo.roi || 0}%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const renderHourlyAnalytics = () => (
         <div className="space-y-6">
@@ -353,9 +385,15 @@ const ReportsPage = () => {
                 case 'revenue':
                     filename = `revenue_report_${new Date().toISOString().split('T')[0]}.csv`;
                     csvContent = 'Date,Revenue,Transactions\n';
-                    (data.dailyRevenue || []).forEach(row => {
-                        csvContent += `${row.date},${row.revenue},${row.transactions || 0}\n`;
-                    });
+                    if (data && data.dailyRevenue) {
+                        data.dailyRevenue.forEach(row => {
+                            csvContent += `${row.date},${row.revenue},${row.transactions || 0}\n`;
+                        });
+                    } else if (data && data.summary) {
+                        // If no daily revenue data, export summary
+                        csvContent = 'Total Revenue,Transactions,Average Transaction\n';
+                        csvContent += `${data.summary.totalRevenue || 0},${data.summary.transactionCount || 0},${data.summary.averageTransaction || 0}\n`;
+                    }
                     break;
 
                 case 'tables':
@@ -451,8 +489,8 @@ const ReportsPage = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === tab.id
-                                        ? 'bg-admin-primary text-white'
-                                        : 'text-text-secondary hover:bg-surface-elevated'
+                                    ? 'bg-admin-primary text-white'
+                                    : 'text-text-secondary hover:bg-surface-elevated'
                                     }`}
                             >
                                 <tab.icon size={18} className="inline mr-2" />

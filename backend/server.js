@@ -65,8 +65,9 @@ const startServer = async () => {
         // Test database connection
         await testConnection();
 
-        // Sync database (in development)
-        if (config.env === 'development') {
+        // Sync database only when explicitly requested via DB_SYNC=true
+        // This prevents ALTER TABLE queries from running on every restart
+        if (process.env.DB_SYNC === 'true') {
             await sequelize.sync({ alter: true });
             logger.info('Database synced successfully');
         }

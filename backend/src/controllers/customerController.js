@@ -1,4 +1,4 @@
-import { Customer, Reservation, ActivityLog } from '../models/index.js';
+import { Customer, Reservation, ActivityLog, Table, TableType, Payment, Promo } from '../models/index.js';
 import logger from '../utils/logger.js';
 
 /**
@@ -154,9 +154,161 @@ export const getActivityLogs = async (req, res, next) => {
     }
 };
 
+/**
+ * Get Customer Reservations with pagination
+ * GET /api/customer/reservations
+ */
+export const getReservations = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 10, status } = req.query;
+        const customerId = req.user.id;
+
+        const whereClause = { customer_id: customerId };
+        if (status) {
+            whereClause.status = status;
+        }
+
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+
+        const { count, rows: reservations } = await Reservation.findAndCountAll({
+            where: whereClause,
+            include: [
+                {
+                    association: 'table',
+                    include: ['tableType'],
+                },
+                'promo',
+                'payment',
+            ],
+            order: [['created_at', 'DESC']],
+            limit: parseInt(limit),
+            offset,
+        });
+
+        res.json({
+            success: true,
+            data: {
+                reservations,
+                pagination: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    total: count,
+                    totalPages: Math.ceil(count / parseInt(limit)),
+                },
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Cancel Customer Reservation
+ * PUT /api/customer/reservations/:id/cancel
+ */
+export const cancelReservation = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const customerId = req.user.id;
+
+        const reservation = await Reservation.findOne({
+            where: {
+                id,
+                customer_id: customerId,
+            },
+        });
+
+        if (!reservation) {
+            return res.status(404).json({
+                success: false,
+                error: { message: 'Reservation not found' },
+            });
+        }
+
+        if (reservation.status === 'cancelled') {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'Reservation is already cancelled' },
+            });
+        }
+
+        if (reservation.status === 'completed') {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'Cannot cancel a completed reservation' },
+            });
+        }
+
+        reservation.status = 'cancelled';
+        await reservation.save();
+
+        // Log the activity
+        await ActivityLog.create({
+            customer_id: customerId,
+            action: 'reservation_cancelled',
+            description: `Cancelled reservation #${reservation.id}`,
+            ip_address: req.ip,
+        });
+
+        logger.info(`Customer cancelled reservation: ${reservation.id}`);
+
+        res.json({
+            success: true,
+            message: 'Reservation cancelled successfully',
+            data: { reservation },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+
+
+/**
+ * Change Password
+ * PUT /api/customer/change-password
+ */
+export const changePassword = async (req, res, next) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const customer = await Customer.findByPk(req.user.id);
+
+        if (!customer) {
+            return res.status(404).json({
+                success: false,
+                error: { message: 'Customer not found' },
+            });
+        }
+
+        const isMatch = await customer.comparePassword(currentPassword);
+        if (!isMatch) {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'Current password incorrect' },
+            });
+        }
+
+        customer.password = newPassword;
+        await customer.save();
+
+        logger.info(`Customer changed password: ${customer.email}`);
+
+        res.json({
+            success: true,
+            message: 'Password changed successfully',
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export default {
     getDashboardStats,
     getProfile,
     updateProfile,
     getActivityLogs,
+    getReservations,
+    cancelReservation,
+    changePassword,
 };

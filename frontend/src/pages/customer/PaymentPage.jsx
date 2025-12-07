@@ -73,7 +73,7 @@ const PaymentPage = () => {
         try {
             const response = await reservationService.getById(reservationId);
             if (response.success) {
-                setReservation(response.data);
+                setReservation(response.data.reservation);
             }
         } catch (err) {
             console.error('Failed to fetch reservation:', err);

@@ -42,6 +42,26 @@ const reservationService = {
         const response = await api.post(`/reservations/${id}/payment`, data);
         return response.data;
     },
+
+    // Get all reservations with filters (for admin)
+    getAllReservations: async (filters = {}) => {
+        const params = new URLSearchParams();
+        if (filters.search) params.append('search', filters.search);
+        if (filters.status) params.append('status', filters.status);
+        if (filters.date) params.append('date', filters.date);
+        if (filters.limit) params.append('limit', filters.limit);
+        if (filters.offset) params.append('offset', filters.offset);
+
+        const queryString = params.toString();
+        const response = await api.get(`/reservations${queryString ? `?${queryString}` : ''}`);
+        return response.data;
+    },
+
+    // Update reservation status
+    updateReservationStatus: async (id, status) => {
+        const response = await api.put(`/reservations/${id}`, { status });
+        return response.data;
+    },
 };
 
 export default reservationService;

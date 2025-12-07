@@ -63,11 +63,11 @@ export const createTableType = async (req, res) => {
     try {
         const { name, hourly_rate, description, color, icon } = req.body;
 
-        // Check if table type name already exists
+        // Check if table type name already exists (case-insensitive)
         const existingType = await TableType.findOne({
             where: {
                 name: {
-                    [Op.iLike]: name
+                    [Op.like]: name
                 }
             }
         });
@@ -127,7 +127,7 @@ export const updateTableType = async (req, res) => {
             const existingType = await TableType.findOne({
                 where: {
                     name: {
-                        [Op.iLike]: name
+                        [Op.like]: name
                     },
                     id: {
                         [Op.ne]: id

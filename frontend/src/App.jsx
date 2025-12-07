@@ -7,6 +7,7 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 // Auth pages
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import LandingPage from './pages/LandingPage';
 
 // Layouts
 import CustomerLayout from './layouts/CustomerLayout';
@@ -26,6 +27,7 @@ import TableManagement from './pages/admin/TableManagementPage';
 import TableTypeManagement from './pages/admin/TableTypeManagementPage';
 import PromoManagement from './pages/admin/PromoManagementPage';
 import ReportsPage from './pages/admin/ReportsPage';
+import ReservationManagement from './pages/admin/ReservationManagementPage';
 
 function App() {
     return (
@@ -35,7 +37,7 @@ function App() {
                     <div className="min-h-screen bg-background text-text-primary font-sans">
                         <Routes>
                             {/* Public routes */}
-                            <Route path="/" element={<Navigate to="/login" replace />} />
+                            <Route path="/" element={<LandingPage />} />
                             <Route path="/login" element={<LoginPage />} />
                             <Route path="/register" element={<RegisterPage />} />
 
@@ -68,6 +70,7 @@ function App() {
                             >
                                 <Route index element={<Navigate to="dashboard" replace />} />
                                 <Route path="dashboard" element={<AdminDashboard />} />
+                                <Route path="reservations" element={<ReservationManagement />} />
                                 <Route path="tables" element={<TableManagement />} />
                                 <Route path="table-types" element={<TableTypeManagement />} />
                                 <Route path="promos" element={<PromoManagement />} />

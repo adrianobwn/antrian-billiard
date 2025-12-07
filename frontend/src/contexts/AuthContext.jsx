@@ -80,6 +80,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         isAdmin: user?.type === 'admin',
         isCustomer: user?.type === 'customer',
+        updateUser: setUser,
     };
 
     if (loading) {

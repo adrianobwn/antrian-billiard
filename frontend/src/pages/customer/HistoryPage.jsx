@@ -125,7 +125,7 @@ const CustomerHistory = () => {
                                 placeholder="Search by table number or ID..."
                                 value={filters.search}
                                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                                className="input pl-10"
+                                className="input !pl-14"
                             />
                         </div>
                     </div>

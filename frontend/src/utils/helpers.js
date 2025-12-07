@@ -16,17 +16,26 @@ export const formatCurrency = (amount) => {
 
 // Format date
 export const formatDate = (date, formatString = 'dd MMM yyyy') => {
-  return format(new Date(date), formatString);
+  if (!date) return '-';
+  const dateObj = new Date(date);
+  if (isNaN(dateObj.getTime())) return '-';
+  return format(dateObj, formatString);
 };
 
 // Format time
 export const formatTime = (date) => {
-  return format(new Date(date), 'HH:mm');
+  if (!date) return '-';
+  const dateObj = new Date(date);
+  if (isNaN(dateObj.getTime())) return '-';
+  return format(dateObj, 'HH:mm');
 };
 
 // Format date and time
 export const formatDateTime = (date) => {
-  return format(new Date(date), 'dd MMM yyyy, HH:mm');
+  if (!date) return '-';
+  const dateObj = new Date(date);
+  if (isNaN(dateObj.getTime())) return '-';
+  return format(dateObj, 'dd MMM yyyy, HH:mm');
 };
 
 // Format duration in hours

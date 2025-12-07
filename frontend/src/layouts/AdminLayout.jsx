@@ -33,7 +33,7 @@ const AdminLayout = () => {
             {/* Sidebar */}
             <aside className="w-64 bg-surface shadow-xl border-r border-text-muted/10 hidden md:flex flex-col fixed h-full z-40">
                 <div className="h-16 flex items-center px-6 border-b border-text-muted/10">
-                    <span className="text-xl font-bold text-admin-primary">BillZ Admin</span>
+                    <span className="text-xl font-bold text-admin-primary">🎱 Admin</span>
                 </div>
 
                 <nav className="flex-1 py-6 space-y-1">

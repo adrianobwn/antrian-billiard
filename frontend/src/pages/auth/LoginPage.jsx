@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { ArrowLeft } from 'lucide-react';
 
 function LoginPage() {
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    const isAdmin = searchParams.get('type') === 'admin';
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -28,6 +27,9 @@ function LoginPage() {
         setLoading(true);
         setError('');
 
+        // Detect if admin based on email domain
+        const isAdmin = formData.email.includes('@antrianbilliard.com');
+
         const result = await login(formData, isAdmin);
 
         if (result.success) {
@@ -41,14 +43,19 @@ function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
+            <Link to="/" className="absolute top-6 left-6 text-text-secondary hover:text-customer-primary flex items-center gap-2 transition-colors">
+                <ArrowLeft size={20} />
+                <span className="font-medium">Back to Home</span>
+            </Link>
+
             <div className="card max-w-md w-full p-8 animate-fadeIn">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold mb-2" style={{ color: isAdmin ? '#f97316' : '#00a859' }}>
-                        🎱 Billiard Reservation
+                    <h1 className="text-3xl font-bold mb-2 text-customer-primary">
+                        🎱 Antrian Billiard
                     </h1>
                     <p className="text-text-secondary">
-                        {isAdmin ? 'Admin Portal' : 'Customer Portal'}
+                        Masuk ke Akun Anda
                     </p>
                 </div>
 
@@ -94,42 +101,27 @@ function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`btn w-full ${isAdmin ? 'btn-primary-admin' : 'btn-primary-customer'}`}
+                        className="btn w-full btn-primary-customer"
                     >
-                        {loading ? 'Logging in...' : 'Login'}
+                        {loading ? 'Logging in...' : 'Masuk'}
                     </button>
                 </form>
 
-                <div className="mt-6 text-center space-y-2">
-                    {!isAdmin && (
-                        <p className="text-text-muted text-sm">
-                            Don't have an account?{' '}
-                            <Link to="/register" className="text-customer-primary hover:text-customer-primary-hover">
-                                Register
-                            </Link>
-                        </p>
-                    )}
-
+                <div className="mt-6 text-center">
                     <p className="text-text-muted text-sm">
-                        {isAdmin ? (
-                            <Link to="/login" className="text-customer-primary hover:text-customer-primary-hover">
-                                Login as Customer
-                            </Link>
-                        ) : (
-                            <Link to="/login?type=admin" className="text-admin-accent hover:text-orange-600">
-                                Admin Login
-                            </Link>
-                        )}
+                        Belum punya akun?{' '}
+                        <Link to="/register" className="text-customer-primary hover:text-customer-primary-hover font-medium">
+                            Daftar Sekarang
+                        </Link>
                     </p>
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-text-muted/10">
                     <p className="text-text-muted text-xs text-center">
-                        {isAdmin ? (
-                            'Use: admin@antrianbilliard.com / admin123'
-                        ) : (
-                            'Use: budi.santoso@email.com / password'
-                        )}
+                        Demo Customer: budi.santoso@email.com / password
+                    </p>
+                    <p className="text-text-muted text-xs text-center mt-1">
+                        Demo Admin: admin@antrianbilliard.com / admin123
                     </p>
                 </div>
             </div>

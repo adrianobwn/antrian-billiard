@@ -4,9 +4,13 @@ const promoService = {
     // Get all promos
     getAll: async (includeInactive = false) => {
         const response = await api.get('/promos', {
-            params: { includeInactive }
+            params: { includeInactive: includeInactive ? 'true' : 'false' }
         });
-        return response.data.data;
+        // Handle wrapped response
+        if (response.data.success) {
+            return response.data;
+        }
+        return response.data;
     },
 
     // Get promo by ID

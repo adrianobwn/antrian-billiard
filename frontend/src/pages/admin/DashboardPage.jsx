@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../../utils/helpers';
 import {
-    DollarSign,
+    Banknote,
     Hash,
     CalendarCheck,
     Users,
@@ -13,7 +13,8 @@ import {
     AlertCircle,
     Activity,
     Filter,
-    RefreshCw
+    RefreshCw,
+    Tag
 } from 'lucide-react';
 import dashboardService from '../../services/dashboardService';
 import tableService from '../../services/tableService';
@@ -196,11 +197,11 @@ const AdminDashboard = () => {
             // Transform recent reservations into activities
             if (statsResponse.success && statsResponse.data.recentReservations) {
                 const activities = statsResponse.data.recentReservations.map(reservation => ({
-                    icon: reservation.status === 'completed' ? DollarSign :
-                          reservation.status === 'active' ? Clock : CalendarCheck,
+                    icon: reservation.status === 'completed' ? Banknote :
+                        reservation.status === 'active' ? Clock : CalendarCheck,
                     description: `${reservation.status === 'completed' ? 'Payment received' :
-                                   reservation.status === 'active' ? 'Active reservation' :
-                                   'New reservation'} for Table ${reservation.tableNumber}`,
+                        reservation.status === 'active' ? 'Active reservation' :
+                            'New reservation'} for Table ${reservation.tableNumber}`,
                     time: formatRelativeTime(reservation.createdAt)
                 }));
                 setRecentActivities(activities);
@@ -271,7 +272,7 @@ const AdminDashboard = () => {
                 <StatCard
                     title="Today's Revenue"
                     value={formatCurrency(stats.revenue)}
-                    icon={DollarSign}
+                    icon={Banknote}
                     colorClass="bg-status-success"
                     change={12}
                 />
@@ -328,7 +329,7 @@ const AdminDashboard = () => {
                         to="/admin/promos"
                         className="btn btn-outline-admin flex items-center justify-center gap-2"
                     >
-                        <DollarSign size={20} />
+                        <Tag size={20} />
                         Manage Promotions
                     </Link>
                 </div>

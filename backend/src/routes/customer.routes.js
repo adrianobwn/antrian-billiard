@@ -5,6 +5,9 @@ import {
     getProfile,
     updateProfile,
     getActivityLogs,
+    getReservations,
+    cancelReservation,
+    changePassword,
 } from '../controllers/customerController.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -44,7 +47,22 @@ const updateProfileValidation = [
 
 router.put('/profile', updateProfileValidation, validate, updateProfile);
 
+// Change Password
+router.put('/change-password',
+    [
+        body('currentPassword').notEmpty().withMessage('Current password is required'),
+        body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
+    ],
+    validate,
+    changePassword
+);
+
 // Activity logs
 router.get('/activity', getActivityLogs);
 
+// Reservations
+router.get('/reservations', getReservations);
+router.put('/reservations/:id/cancel', cancelReservation);
+
 export default router;
+

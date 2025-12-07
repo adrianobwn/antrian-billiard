@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 function RegisterPage() {
@@ -56,7 +57,11 @@ function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+        <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 relative">
+            <Link to="/" className="absolute top-6 left-6 text-text-secondary hover:text-customer-primary flex items-center gap-2 transition-colors">
+                <ArrowLeft size={20} />
+                <span className="font-medium">Back to Home</span>
+            </Link>
             <div className="card max-w-md w-full p-8 animate-fadeIn">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-customer-primary mb-2">

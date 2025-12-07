@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import promoService from '../../services/promoService';
 import { formatCurrency, formatDateTime } from '../../utils/helpers';
-import { Plus, Edit2, Trash2, Eye, Save, X, CheckCircle, AlertCircle, Tag, TrendingUp, Users, Target } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Save, X, CheckCircle, AlertCircle, Tag, TrendingUp, Users, Target, RefreshCw } from 'lucide-react';
 
 const PromoManagement = () => {
     const [promos, setPromos] = useState([]);
@@ -24,25 +24,49 @@ const PromoManagement = () => {
         description: '',
         discount_type: 'percentage',
         discount_value: '',
-        min_hours: '0',
+        min_hours: '',
         valid_from: '',
         valid_until: '',
         max_uses: '',
         is_active: true
     });
 
+    // Format number with dots (Indonesian style)
+    const formatNumberWithDots = (value) => {
+        return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
+
+    // Handle discount value input with formatting
+    const handleDiscountValueChange = (e) => {
+        let value = e.target.value;
+
+        // Remove all non-digit characters
+        value = value.replace(/[^\d]/g, '');
+
+        // For fixed amount, format with dots
+        if (formData.discount_type === 'fixed' && value) {
+            value = formatNumberWithDots(value);
+        }
+
+        setFormData({ ...formData, discount_value: value });
+    };
+
     useEffect(() => {
         fetchData();
     }, [showInactive]);
 
     const fetchData = async () => {
+        setLoading(true);
         try {
+            console.log('Fetching promos with showInactive:', showInactive);
             const [promosData, statsData] = await Promise.all([
                 promoService.getAll(showInactive),
                 promoService.getStats()
             ]);
-            setPromos(promosData);
-            setStats(statsData);
+            console.log('Promos data received:', promosData);
+            // Handle both wrapped and unwrapped responses
+            setPromos(promosData.data || promosData);
+            setStats(statsData.data || statsData);
         } catch (err) {
             console.error('Failed to fetch data:', err);
             setError('Failed to load promos data');
@@ -57,7 +81,7 @@ const PromoManagement = () => {
             description: '',
             discount_type: 'percentage',
             discount_value: '',
-            min_hours: '0',
+            min_hours: '',
             valid_from: '',
             valid_until: '',
             max_uses: '',
@@ -73,8 +97,25 @@ const PromoManagement = () => {
             return;
         }
 
+        // Validate discount value based on type
+        const discountValue = parseFloat(formData.discount_value.replace(/\./g, ''));
+        if (formData.discount_type === 'percentage' && (discountValue < 0 || discountValue > 100)) {
+            setError('Percentage discount must be between 0 and 100');
+            return;
+        }
+        if (formData.discount_type === 'fixed' && discountValue < 0) {
+            setError('Fixed discount must be greater than 0');
+            return;
+        }
+
+        // Remove dots from discount_value before sending
+        const submitData = {
+            ...formData,
+            discount_value: discountValue
+        };
+
         try {
-            await promoService.create(formData);
+            await promoService.create(submitData);
             setSuccess('Promo created successfully');
             setShowCreateModal(false);
             resetForm();
@@ -91,7 +132,7 @@ const PromoManagement = () => {
             code: promo.code,
             description: promo.description || '',
             discount_type: promo.discount_type,
-            discount_value: promo.discount_value,
+            discount_value: promo.discount_type === 'fixed' ? formatNumberWithDots(promo.discount_value.toString()) : promo.discount_value.toString(),
             min_hours: promo.min_hours.toString(),
             valid_from: promo.valid_from.split('T')[0],
             valid_until: promo.valid_until.split('T')[0],
@@ -107,8 +148,25 @@ const PromoManagement = () => {
             return;
         }
 
+        // Validate discount value based on type
+        const discountValue = parseFloat(formData.discount_value.replace(/\./g, ''));
+        if (formData.discount_type === 'percentage' && (discountValue < 0 || discountValue > 100)) {
+            setError('Percentage discount must be between 0 and 100');
+            return;
+        }
+        if (formData.discount_type === 'fixed' && discountValue < 0) {
+            setError('Fixed discount must be greater than 0');
+            return;
+        }
+
+        // Remove dots from discount_value before sending
+        const submitData = {
+            ...formData,
+            discount_value: discountValue
+        };
+
         try {
-            await promoService.update(selectedPromo.id, formData);
+            await promoService.update(selectedPromo.id, submitData);
             setSuccess('Promo updated successfully');
             setShowEditModal(false);
             resetForm();
@@ -176,21 +234,31 @@ const PromoManagement = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Promotions</h1>
-                    <p className="text-text-secondary">Manage promotional codes and discounts</p>
+                    <p className="text-text-secondary">Create and manage promotional codes to attract customers</p>
                 </div>
-                <button
-                    onClick={() => {
-                        resetForm();
-                        setShowCreateModal(true);
-                    }}
-                    className="btn btn-primary-admin inline-flex items-center gap-2"
-                >
-                    <Plus size={20} />
-                    Add Promo
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={fetchData}
+                        disabled={loading}
+                        className="btn btn-outline-admin inline-flex items-center gap-2"
+                    >
+                        <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+                        Refresh
+                    </button>
+                    <button
+                        onClick={() => {
+                            resetForm();
+                            setShowCreateModal(true);
+                        }}
+                        className="btn btn-primary-admin inline-flex items-center gap-2"
+                    >
+                        <Plus size={20} />
+                        Add Promo
+                    </button>
+                </div>
             </div>
 
             {/* Stats Cards */}
@@ -278,71 +346,102 @@ const PromoManagement = () => {
             )}
 
             {/* Promos List */}
-            <div className="card">
+            <div className="card p-6">
+                <div className="mb-4 flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-white">
+                        All Promotions {showInactive && <span className="text-text-muted text-sm">(including inactive)</span>}
+                    </h3>
+                </div>
+
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="text-left text-text-secondary text-sm">
-                                <th className="pb-4 font-medium">Code</th>
+                            <tr className="text-left text-text-secondary text-sm border-b border-text-muted/20">
+                                <th className="pb-4 pl-6 font-medium">Promo Code</th>
                                 <th className="pb-4 font-medium">Description</th>
-                                <th className="pb-4 font-medium">Discount</th>
-                                <th className="pb-4 font-medium">Min Hours</th>
+                                <th className="pb-4 font-medium">Discount Value</th>
+                                <th className="pb-4 font-medium">Requirements</th>
                                 <th className="pb-4 font-medium">Usage</th>
                                 <th className="pb-4 font-medium">Status</th>
-                                <th className="pb-4 font-medium">Actions</th>
+                                <th className="pb-4 pr-6 font-medium">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {promos.map((promo) => (
-                                <tr key={promo.id} className="border-t border-text-muted/10">
-                                    <td className="py-4">
+                                <tr key={promo.id} className="border-b border-text-muted/10 hover:bg-surface-elevated/30 transition-colors">
+                                    <td className="py-4 pl-6">
                                         <div className="flex items-center gap-2">
-                                            <Target size={16} className="text-admin-accent" />
+                                            <Target size={18} className="text-admin-accent" />
                                             <span className="text-white font-mono font-bold">{promo.code}</span>
                                         </div>
                                     </td>
-                                    <td className="py-4 text-text-secondary text-sm max-w-xs truncate">
-                                        {promo.description || '-'}
+                                    <td className="py-4">
+                                        <p className="text-text-secondary text-sm max-w-xs">
+                                            {promo.description || <span className="text-text-muted italic">No description</span>}
+                                        </p>
                                     </td>
                                     <td className="py-4">
                                         {promo.discount_type === 'percentage' ? (
-                                            <span className="text-admin-primary font-semibold">{promo.discount_value}%</span>
+                                            <span className="inline-flex items-center px-3 py-1 rounded-lg bg-status-success/20 text-status-success font-semibold">
+                                                {promo.discount_value}% OFF
+                                            </span>
                                         ) : (
-                                            <span className="text-admin-primary font-semibold">{formatCurrency(promo.discount_value)}</span>
+                                            <span className="inline-flex items-center px-3 py-1 rounded-lg bg-admin-primary/20 text-admin-primary font-semibold">
+                                                {formatCurrency(promo.discount_value)} OFF
+                                            </span>
                                         )}
                                     </td>
-                                    <td className="py-4 text-text-secondary">{promo.min_hours}h</td>
+                                    <td className="py-4">
+                                        <div className="text-text-secondary text-sm">
+                                            {promo.min_hours > 0 ? (
+                                                <span>Min. {promo.min_hours} hour{promo.min_hours > 1 ? 's' : ''}</span>
+                                            ) : (
+                                                <span className="text-text-muted">No minimum</span>
+                                            )}
+                                        </div>
+                                        <div className="text-text-muted text-xs">
+                                            Valid: {new Date(promo.valid_from).toLocaleDateString()} - {new Date(promo.valid_until).toLocaleDateString()}
+                                        </div>
+                                    </td>
                                     <td className="py-4">
                                         {promo.max_uses ? (
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-16 bg-surface-elevated rounded-full h-2">
-                                                    <div
-                                                        className="bg-admin-primary h-2 rounded-full"
-                                                        style={{ width: `${getUsagePercentage(promo)}%` }}
-                                                    ></div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <div className="w-20 bg-surface-elevated rounded-full h-2">
+                                                        <div
+                                                            className="bg-admin-primary h-2 rounded-full transition-all"
+                                                            style={{ width: `${Math.min(getUsagePercentage(promo), 100)}%` }}
+                                                        ></div>
+                                                    </div>
+                                                    <span className="text-text-secondary text-sm">
+                                                        {promo.current_uses}/{promo.max_uses}
+                                                    </span>
                                                 </div>
-                                                <span className="text-text-secondary text-sm">
-                                                    {promo.current_uses}/{promo.max_uses}
-                                                </span>
+                                                <span className="text-text-muted text-xs">{getUsagePercentage(promo)}% used</span>
                                             </div>
                                         ) : (
-                                            <span className="text-text-secondary">{promo.current_uses} uses</span>
+                                            <div>
+                                                <span className="text-text-secondary">{promo.current_uses} uses</span>
+                                                <span className="text-text-muted text-xs block">Unlimited</span>
+                                            </div>
                                         )}
                                     </td>
-                                    <td className="py-4">{getStatusBadge(promo)}</td>
                                     <td className="py-4">
-                                        <div className="flex items-center gap-2">
+                                        {getStatusBadge(promo)}
+                                    </td>
+                                    <td className="py-4 pr-6">
+                                        <div className="flex items-center gap-1">
                                             <button
                                                 onClick={() => handleEdit(promo)}
-                                                className="p-1 hover:bg-surface-elevated rounded text-text-muted hover:text-text-secondary"
-                                                title="Edit"
+                                                className="p-2 hover:bg-surface-elevated rounded-lg text-text-muted hover:text-text-secondary transition-colors"
+                                                title="Edit promotion"
                                             >
                                                 <Edit2 size={16} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(promo)}
-                                                className="p-1 hover:bg-surface-elevated rounded text-text-muted hover:text-status-error"
-                                                title="Delete"
+                                                className="p-2 hover:bg-surface-elevated rounded-lg text-text-muted hover:text-status-error transition-colors"
+                                                title="Delete promotion"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -356,8 +455,11 @@ const PromoManagement = () => {
 
                 {promos.length === 0 && (
                     <div className="text-center py-12">
-                        <Tag size={48} className="mx-auto text-text-muted mb-4 opacity-50" />
-                        <p className="text-text-secondary">No promos found. Create your first promo to get started.</p>
+                        <div className="w-16 h-16 bg-surface-elevated rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Tag size={24} className="text-text-muted" />
+                        </div>
+                        <p className="text-text-secondary mb-2">No promotions found</p>
+                        <p className="text-text-muted text-sm">Create your first promotion to start offering discounts to customers</p>
                     </div>
                 )}
             </div>
@@ -411,15 +513,20 @@ const PromoManagement = () => {
                                 <label className="block text-sm font-medium text-text-secondary mb-1">
                                     Discount Value *
                                 </label>
-                                <input
-                                    type="number"
-                                    value={formData.discount_value}
-                                    onChange={(e) => setFormData({ ...formData, discount_value: e.target.value })}
-                                    className="input"
-                                    min="0"
-                                    step={formData.discount_type === 'percentage' ? '1' : '1000'}
-                                    placeholder={formData.discount_type === 'percentage' ? '10' : '10000'}
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={formData.discount_type === 'percentage' ? 'number' : 'text'}
+                                        value={formData.discount_value}
+                                        onChange={handleDiscountValueChange}
+                                        className="input !pr-14"
+                                        min="0"
+                                        step={formData.discount_type === 'percentage' ? '1' : '1000'}
+                                        placeholder={formData.discount_type === 'percentage' ? '10' : '10.000'}
+                                    />
+                                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted text-sm">
+                                        {formData.discount_type === 'percentage' ? '%' : 'Rp'}
+                                    </span>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-text-secondary mb-1">
