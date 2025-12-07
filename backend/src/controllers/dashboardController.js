@@ -253,7 +253,7 @@ async function getTableTypeUsage() {
 // Helper function to get recent reservations
 async function getRecentReservations() {
     const reservations = await Reservation.findAll({
-        limit: 10,
+        limit: 30,
         order: [['created_at', 'DESC']],
         include: [{
             model: Customer,

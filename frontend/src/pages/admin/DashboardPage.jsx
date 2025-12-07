@@ -72,7 +72,7 @@ const TableGrid = ({ tables, onRefresh }) => {
     };
 
     return (
-        <div className="card p-6">
+        <div className="card p-6 h-full">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                     <Table size={24} className="text-admin-primary" />
@@ -141,19 +141,19 @@ const TableGrid = ({ tables, onRefresh }) => {
 
 const RecentActivity = ({ activities }) => {
     return (
-        <div className="card p-6">
-            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <div className="card p-6 h-full flex flex-col">
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 flex-shrink-0">
                 <Activity size={24} className="text-admin-primary" />
                 Recent Activity
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0">
                 {activities.map((activity, index) => (
-                    <div key={index} className="flex items-start gap-3 pb-4 border-b border-text-muted/10 last:border-0">
-                        <div className="p-2 bg-surface-elevated rounded-lg">
+                    <div key={index} className="flex items-start gap-3 pb-4 border-b border-text-muted/10 last:border-0 last:pb-0">
+                        <div className="p-2 bg-surface-elevated rounded-lg flex-shrink-0">
                             <activity.icon size={16} className="text-admin-accent" />
                         </div>
-                        <div className="flex-1">
-                            <p className="text-white text-sm">{activity.description}</p>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm break-words">{activity.description}</p>
                             <p className="text-text-muted text-xs mt-1">{activity.time}</p>
                         </div>
                     </div>

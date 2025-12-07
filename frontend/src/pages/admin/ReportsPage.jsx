@@ -387,7 +387,7 @@ const ReportsPage = () => {
                     csvContent = 'Date,Revenue,Transactions\n';
                     if (data && data.dailyRevenue) {
                         data.dailyRevenue.forEach(row => {
-                            csvContent += `${row.date},${row.revenue},${row.transactions || 0}\n`;
+                            csvContent += `${row.date},${row.revenue},${row.count || 0}\n`;
                         });
                     } else if (data && data.summary) {
                         // If no daily revenue data, export summary
