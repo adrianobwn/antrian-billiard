@@ -4,7 +4,7 @@ import {
     CalendarCheck,
     Clock,
     Users,
-    DollarSign,
+    Banknote,
     Search,
     Filter,
     RefreshCw,
@@ -120,8 +120,8 @@ const ReservationManagementPage = () => {
 
     const filteredReservations = reservations.filter(reservation => {
         const matchesSearch = searchTerm === '' ||
-            reservation.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            reservation.tableNumber?.toString().includes(searchTerm) ||
+            reservation.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            reservation.table?.table_number?.toString().includes(searchTerm) ||
             reservation.id?.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === 'all' || reservation.status === statusFilter;
@@ -215,9 +215,9 @@ const ReservationManagementPage = () => {
                                             </td>
                                             <td className="py-4">
                                                 <div>
-                                                    <p className="text-white font-medium">{reservation.customerName || 'Guest Customer'}</p>
-                                                    {reservation.customerEmail && (
-                                                        <p className="text-text-muted text-xs">{reservation.customerEmail}</p>
+                                                    <p className="text-white font-medium">{reservation.customer?.name || 'Guest Customer'}</p>
+                                                    {reservation.customer?.email && (
+                                                        <p className="text-text-muted text-xs">{reservation.customer.email}</p>
                                                     )}
                                                 </div>
                                             </td>
@@ -225,7 +225,7 @@ const ReservationManagementPage = () => {
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-2xl">🎱</span>
                                                     <div>
-                                                        <p className="text-white font-medium">Table {reservation.tableNumber || 'N/A'}</p>
+                                                        <p className="text-white font-medium">Table {reservation.table?.table_number || 'N/A'}</p>
                                                         <p className="text-text-muted text-xs">Billiard Table</p>
                                                     </div>
                                                 </div>
@@ -233,10 +233,10 @@ const ReservationManagementPage = () => {
                                             <td className="py-4">
                                                 <div>
                                                     <p className="text-white font-medium">
-                                                        {reservation.startTime ? formatDateTime(reservation.startTime) : 'N/A'}
+                                                        {reservation.start_time ? formatDateTime(reservation.start_time) : 'N/A'}
                                                     </p>
                                                     <p className="text-text-muted text-xs">
-                                                        {reservation.endTime ? `to ${formatDateTime(reservation.endTime)}` : ''}
+                                                        {reservation.end_time ? `to ${formatDateTime(reservation.end_time)}` : ''}
                                                     </p>
                                                 </div>
                                             </td>
@@ -244,7 +244,7 @@ const ReservationManagementPage = () => {
                                                 <div className="flex items-center gap-2">
                                                     <Clock size={16} className="text-text-muted" />
                                                     <span className="text-white font-medium">
-                                                        {reservation.duration ? `${reservation.duration} hour${reservation.duration > 1 ? 's' : ''}` : 'N/A'}
+                                                        {reservation.duration_hours ? `${reservation.duration_hours} hour${reservation.duration_hours > 1 ? 's' : ''}` : 'N/A'}
                                                     </span>
                                                 </div>
                                             </td>
@@ -257,7 +257,7 @@ const ReservationManagementPage = () => {
                                             <td className="py-4">
                                                 <div>
                                                     <p className="text-white font-semibold text-lg">
-                                                        {formatCurrency(reservation.totalAmount || 0)}
+                                                        {formatCurrency(reservation.final_cost || reservation.base_cost || 0)}
                                                     </p>
                                                     <p className="text-text-muted text-xs">Total Payment</p>
                                                 </div>
@@ -280,7 +280,7 @@ const ReservationManagementPage = () => {
                                                             <CheckCircle size={16} />
                                                         </button>
                                                     )}
-                                                    {reservation.status === 'confirmed' && (
+                                                    {reservation.status === 'pending' && (
                                                         <button
                                                             onClick={() => handleUpdateStatus(reservation.id, 'cancelled')}
                                                             className="p-2 hover:bg-surface-elevated rounded-lg text-status-error hover:text-status-error/80 transition-colors"
@@ -344,12 +344,12 @@ const ReservationManagementPage = () => {
                                     <div className="bg-surface-elevated/50 p-4 rounded-lg space-y-3">
                                         <div>
                                             <p className="text-text-secondary text-xs">Full Name</p>
-                                            <p className="text-white font-medium">{selectedReservation.customerName || 'Guest Customer'}</p>
+                                            <p className="text-white font-medium">{selectedReservation.customer?.name || 'Guest Customer'}</p>
                                         </div>
                                         <div>
                                             <p className="text-text-secondary text-xs">Contact Info</p>
-                                            <p className="text-white text-sm">{selectedReservation.customerEmail || '-'}</p>
-                                            <p className="text-white text-sm">{selectedReservation.customerPhone || '-'}</p>
+                                            <p className="text-white text-sm">{selectedReservation.customer?.email || '-'}</p>
+                                            <p className="text-white text-sm">{selectedReservation.customer?.phone || '-'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -363,25 +363,25 @@ const ReservationManagementPage = () => {
                                             <p className="text-text-secondary text-xs">Table</p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-2xl">🎱</span>
-                                                <span className="text-white font-bold">Table {selectedReservation.tableNumber}</span>
+                                                <span className="text-white font-bold">Table {selectedReservation.table?.table_number}</span>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <p className="text-text-secondary text-xs">Date</p>
                                                 <p className="text-white text-sm mt-1">
-                                                    {formatDate(selectedReservation.startTime)}
+                                                    {formatDate(selectedReservation.start_time)}
                                                 </p>
                                             </div>
                                             <div>
                                                 <p className="text-text-secondary text-xs">Duration</p>
-                                                <p className="text-white text-sm mt-1">{selectedReservation.duration} hours</p>
+                                                <p className="text-white text-sm mt-1">{selectedReservation.duration_hours} hours</p>
                                             </div>
                                         </div>
                                         <div>
                                             <p className="text-text-secondary text-xs">Time Slot</p>
                                             <p className="text-white text-sm mt-1 font-mono bg-surface-elevated px-2 py-1 rounded inline-block">
-                                                {formatTime(selectedReservation.startTime)} - {formatTime(selectedReservation.endTime)}
+                                                {formatTime(selectedReservation.start_time)} - {formatTime(selectedReservation.end_time)}
                                             </p>
                                         </div>
                                     </div>
@@ -391,12 +391,12 @@ const ReservationManagementPage = () => {
                             {/* Financial Section */}
                             <div className="space-y-4">
                                 <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider flex items-center gap-2">
-                                    <DollarSign size={16} /> Payment Details
+                                    <Banknote size={16} /> Payment Details
                                 </h3>
                                 <div className="bg-surface-elevated/30 border border-text-muted/10 rounded-lg p-4">
                                     <div className="flex justify-between items-center py-2 border-b border-text-muted/10">
                                         <span className="text-text-secondary">Base Rate</span>
-                                        <span className="text-white">Hourly Rate x {selectedReservation.duration}h</span>
+                                        <span className="text-white">Hourly Rate x {selectedReservation.duration_hours}h</span>
                                     </div>
                                     {selectedReservation.discount > 0 && (
                                         <div className="flex justify-between items-center py-2 border-b border-text-muted/10 text-status-success">
@@ -407,7 +407,7 @@ const ReservationManagementPage = () => {
                                     <div className="flex justify-between items-center pt-3 mt-1">
                                         <span className="text-lg font-bold text-white">Total Amount</span>
                                         <span className="text-2xl font-bold text-admin-primary">
-                                            {formatCurrency(selectedReservation.totalAmount || 0)}
+                                            {formatCurrency(selectedReservation.final_cost || selectedReservation.base_cost || 0)}
                                         </span>
                                     </div>
                                 </div>
@@ -443,7 +443,8 @@ const ReservationManagementPage = () => {
                                     Confirm Booking
                                 </button>
                             )}
-                            {selectedReservation.status === 'confirmed' && (
+                            {/* Only allow cancellation for pending reservations or active ones if really needed (usually not) */}
+                            {selectedReservation.status === 'pending' && (
                                 <button
                                     onClick={() => {
                                         handleUpdateStatus(selectedReservation.id, 'cancelled');

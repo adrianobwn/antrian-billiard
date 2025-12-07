@@ -76,9 +76,27 @@ export const getProfile = async (req, res, next) => {
             });
         }
 
+        // Get reservation stats
+        const totalReservations = await Reservation.count({
+            where: { customer_id: req.user.id }
+        });
+
+        const completedReservations = await Reservation.count({
+            where: {
+                customer_id: req.user.id,
+                status: 'completed'
+            }
+        });
+
         res.json({
             success: true,
-            data: { customer },
+            data: {
+                customer: {
+                    ...customer.toJSON(),
+                    total_reservations: totalReservations,
+                    completed_reservations: completedReservations
+                }
+            },
         });
     } catch (error) {
         next(error);

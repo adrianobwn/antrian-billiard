@@ -19,7 +19,7 @@ import ReservationPage from './pages/customer/ReservationPage';
 import PaymentPage from './pages/customer/PaymentPage';
 import CustomerProfile from './pages/customer/ProfilePage';
 import CustomerHistory from './pages/customer/HistoryPage';
-import CustomerActivity from './pages/customer/ActivityPage';
+
 
 // Admin Pages
 import AdminDashboard from './pages/admin/DashboardPage';
@@ -55,7 +55,6 @@ function App() {
                                 <Route path="reservations/new" element={<ReservationPage />} />
                                 <Route path="payment" element={<PaymentPage />} />
                                 <Route path="history" element={<CustomerHistory />} />
-                                <Route path="activity" element={<CustomerActivity />} />
                                 <Route path="profile" element={<CustomerProfile />} />
                             </Route>
 

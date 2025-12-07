@@ -37,6 +37,8 @@ const CustomerProfile = () => {
                     phone: profile.phone || '',
                     address: profile.address || ''
                 });
+                // Update global user context to reflect new stats
+                updateUser(profile);
             }
         } catch (error) {
             console.error('Failed to fetch profile:', error);

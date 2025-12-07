@@ -9,7 +9,7 @@ import logger from '../utils/logger.js';
  */
 export const getAllReservations = async (req, res, next) => {
     try {
-        const { status, page = 1, limit = 10 } = req.query;
+        const { status, search, date, page = 1, limit = 10 } = req.query;
         const where = {};
 
         // Customers can only see their own reservations
@@ -20,6 +20,42 @@ export const getAllReservations = async (req, res, next) => {
         // Filter by status if provided
         if (status) {
             where.status = status;
+        }
+
+        // Filter by date if provided
+        if (date) {
+            const searchDate = new Date(date);
+            const nextDay = new Date(searchDate);
+            nextDay.setDate(searchDate.getDate() + 1);
+
+            where.start_time = {
+                [Op.gte]: searchDate,
+                [Op.lt]: nextDay
+            };
+        }
+
+        // Include Search logic
+        let include = [
+            {
+                association: 'customer',
+                attributes: ['id', 'name', 'email', 'phone'],
+            },
+            {
+                association: 'table',
+                include: ['tableType'],
+            },
+            'promo',
+            'payment',
+        ];
+
+        if (search) {
+            const searchLower = `%${search.toLowerCase()}%`;
+            where[Op.or] = [
+                { id: { [Op.like]: searchLower } }, // Postgres use iLike, but we use like for compatibility/mysql. Helper might need adjustment if PG.
+                // We can also search in included models.
+                { '$customer.name$': { [Op.like]: searchLower } },
+                { '$table.table_number$': { [Op.like]: searchLower } }
+            ];
         }
 
         const reservations = await Reservation.findAll({
@@ -39,7 +75,9 @@ export const getAllReservations = async (req, res, next) => {
             order: [['created_at', 'DESC']],
             limit: parseInt(limit),
             offset: (parseInt(page) - 1) * parseInt(limit),
+            // distinct: true, // Recommended for includes with limit
         });
+
 
         const total = await Reservation.count({ where });
 

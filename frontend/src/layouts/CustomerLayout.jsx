@@ -38,9 +38,6 @@ const CustomerLayout = () => {
                             <Link to="/customer/history" className={`flex items-center gap-2 font-medium transition-colors ${isActive('/customer/history')}`}>
                                 <History size={18} /> History
                             </Link>
-                            <Link to="/customer/activity" className={`flex items-center gap-2 font-medium transition-colors ${isActive('/customer/activity')}`}>
-                                <Activity size={18} /> Activity
-                            </Link>
                             <Link to="/customer/profile" className={`flex items-center gap-2 font-medium transition-colors ${isActive('/customer/profile')}`}>
                                 <User size={18} /> Profile
                             </Link>

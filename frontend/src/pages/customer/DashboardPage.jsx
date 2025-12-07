@@ -107,12 +107,12 @@ const CustomerDashboard = () => {
                                             <PoolTableVisual
                                                 table={{
                                                     number: res.table?.table_number || 'N/A',
-                                                    status: res.status === 'completed' ? 'available' :
-                                                           res.status === 'active' || res.status === 'confirmed' ? 'occupied' :
-                                                           res.status === 'pending' ? 'reserved' : 'maintenance'
+                                                    status: (res.status === 'confirmed' || res.status === 'active') ? 'occupied' :
+                                                        (res.status === 'pending') ? 'reserved' :
+                                                            'available'
                                                 }}
                                                 size="small"
-                                                showStatus={true}
+                                                showStatus={false}
                                                 className="mt-2"
                                             />
                                         </div>
