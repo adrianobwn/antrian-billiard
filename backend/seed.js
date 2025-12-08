@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { sequelize, Customer, Admin, TableType, Table, Promo, Reservation, Payment } from './src/models/index.js';
+import { sequelize, Customer, Admin, TableType, Table, Promo, Reservation, Payment, ActivityLog } from './src/models/index.js';
 import logger from './src/utils/logger.js';
 
 /**
@@ -13,11 +13,12 @@ const seed = async () => {
         // Check connection
         await sequelize.authenticate();
 
-        // Clear existing data (optional)
+        // Clear existing data (optional) - order matters for foreign key constraints
         if (process.argv.includes('--fresh')) {
             logger.info('🗑️  Clearing existing data...');
             await Payment.destroy({ where: {}, force: true });
             await Reservation.destroy({ where: {}, force: true });
+            await ActivityLog.destroy({ where: {}, force: true }); // Delete before Customer
             await Table.destroy({ where: {}, force: true });
             await TableType.destroy({ where: {}, force: true });
             await Promo.destroy({ where: {}, force: true });
