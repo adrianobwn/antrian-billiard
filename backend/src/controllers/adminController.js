@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { body } from 'express-validator';
-import { Table, TableType, Promo, Reservation, Payment, Customer } from '../models/index.js';
+import { Table, TableType, Promo, Reservation, Payment, Customer, Admin } from '../models/index.js';
 import logger from '../utils/logger.js';
 
 /**
@@ -650,6 +650,226 @@ export const validatePromo = async (req, res, next) => {
 /**
  * Validation rules
  */
+
+// ========== ADMIN USER MANAGEMENT ==========
+
+/**
+ * Get all admin users
+ * GET /api/admin/users
+ */
+export const getAllAdmins = async (req, res, next) => {
+    try {
+        const admins = await Admin.findAll({
+            attributes: { exclude: ['password'] },
+            order: [['created_at', 'DESC']],
+        });
+
+        res.json({
+            success: true,
+            data: { admins },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Get admin by ID
+ * GET /api/admin/users/:id
+ */
+export const getAdminById = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const admin = await Admin.findByPk(id, {
+            attributes: { exclude: ['password'] },
+        });
+
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                error: { message: 'Admin not found' },
+            });
+        }
+
+        res.json({
+            success: true,
+            data: { admin },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Create admin user
+ * POST /api/admin/users
+ */
+export const createAdminUser = async (req, res, next) => {
+    try {
+        const { name, email, password, role } = req.body;
+
+        // Check if email already exists
+        const existing = await Admin.findOne({ where: { email } });
+        if (existing) {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'Email already exists' },
+            });
+        }
+
+        const admin = await Admin.create({
+            name,
+            email,
+            password,
+            role: role || 'staff',
+        });
+
+        logger.info(`Admin user created: ${email} by ${req.user.email}`);
+
+        res.status(201).json({
+            success: true,
+            message: 'Admin user created successfully',
+            data: {
+                admin: {
+                    id: admin.id,
+                    name: admin.name,
+                    email: admin.email,
+                    role: admin.role,
+                    created_at: admin.created_at,
+                },
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Update admin user
+ * PUT /api/admin/users/:id
+ */
+export const updateAdminUser = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { name, email, password, role } = req.body;
+
+        const admin = await Admin.findByPk(id);
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                error: { message: 'Admin not found' },
+            });
+        }
+
+        // Prevent changing own role if super_admin
+        if (req.user.id === id && role && role !== admin.role) {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'Cannot change your own role' },
+            });
+        }
+
+        // Check email uniqueness if changed
+        if (email && email !== admin.email) {
+            const existing = await Admin.findOne({ where: { email } });
+            if (existing) {
+                return res.status(400).json({
+                    success: false,
+                    error: { message: 'Email already exists' },
+                });
+            }
+            admin.email = email;
+        }
+
+        if (name) admin.name = name;
+        if (password) admin.password = password;
+        if (role) admin.role = role;
+
+        await admin.save();
+
+        logger.info(`Admin user ${id} updated by ${req.user.email}`);
+
+        res.json({
+            success: true,
+            message: 'Admin user updated successfully',
+            data: {
+                admin: {
+                    id: admin.id,
+                    name: admin.name,
+                    email: admin.email,
+                    role: admin.role,
+                    created_at: admin.created_at,
+                    updated_at: admin.updated_at,
+                },
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Delete admin user
+ * DELETE /api/admin/users/:id
+ */
+export const deleteAdminUser = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        // Prevent deleting yourself
+        if (req.user.id === id) {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'Cannot delete your own account' },
+            });
+        }
+
+        const admin = await Admin.findByPk(id);
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                error: { message: 'Admin not found' },
+            });
+        }
+
+        // Prevent deleting last super_admin
+        if (admin.role === 'super_admin') {
+            const superAdminCount = await Admin.count({ where: { role: 'super_admin' } });
+            if (superAdminCount <= 1) {
+                return res.status(400).json({
+                    success: false,
+                    error: { message: 'Cannot delete the last super admin' },
+                });
+            }
+        }
+
+        await admin.destroy();
+
+        logger.info(`Admin user ${id} deleted by ${req.user.email}`);
+
+        res.json({
+            success: true,
+            message: 'Admin user deleted successfully',
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const adminUserValidation = [
+    body('name').trim().notEmpty().withMessage('Name is required').isLength({ min: 2, max: 100 }),
+    body('email').isEmail().withMessage('Valid email is required'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('role').optional().isIn(['super_admin', 'admin', 'staff']).withMessage('Invalid role'),
+];
+
+export const adminUserUpdateValidation = [
+    body('name').optional().trim().isLength({ min: 2, max: 100 }),
+    body('email').optional().isEmail().withMessage('Valid email is required'),
+    body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('role').optional().isIn(['super_admin', 'admin', 'staff']).withMessage('Invalid role'),
+];
 export const tableValidation = [
     body('table_number').trim().notEmpty().withMessage('Table number is required'),
     body('table_type_id').isUUID().withMessage('Valid table type ID required'),
@@ -690,7 +910,14 @@ export default {
     updatePromo,
     deletePromo,
     validatePromo,
+    getAllAdmins,
+    getAdminById,
+    createAdminUser,
+    updateAdminUser,
+    deleteAdminUser,
     tableValidation,
     tableTypeValidation,
     promoValidation,
+    adminUserValidation,
+    adminUserUpdateValidation,
 };

@@ -16,12 +16,19 @@ import {
     updatePromo,
     deletePromo,
     validatePromo,
+    getAllAdmins,
+    getAdminById,
+    createAdminUser,
+    updateAdminUser,
+    deleteAdminUser,
     tableValidation,
     tableTypeValidation,
     promoValidation,
+    adminUserValidation,
+    adminUserUpdateValidation,
 } from '../controllers/adminController.js';
 import { authenticate } from '../middleware/auth.js';
-import { requireAdmin } from '../middleware/adminAuth.js';
+import { requireAdmin, requireSuperAdmin } from '../middleware/adminAuth.js';
 import { validate } from '../middleware/validate.js';
 
 const router = express.Router();
@@ -63,5 +70,14 @@ router.post('/promos', promoValidation, validate, createPromo);
 router.put('/promos/:id', promoValidation, validate, updatePromo);
 router.delete('/promos/:id', deletePromo);
 router.post('/promos/validate', validatePromo);
+
+/**
+ * Admin User Management Routes (Super Admin only)
+ */
+router.get('/users', requireSuperAdmin, getAllAdmins);
+router.get('/users/:id', requireSuperAdmin, getAdminById);
+router.post('/users', requireSuperAdmin, adminUserValidation, validate, createAdminUser);
+router.put('/users/:id', requireSuperAdmin, adminUserUpdateValidation, validate, updateAdminUser);
+router.delete('/users/:id', requireSuperAdmin, deleteAdminUser);
 
 export default router;
